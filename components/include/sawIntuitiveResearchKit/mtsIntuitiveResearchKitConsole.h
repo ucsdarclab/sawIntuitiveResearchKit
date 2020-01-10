@@ -290,6 +290,9 @@ protected:
     typedef std::map<std::string, TeleopPSM *> TeleopPSMList;
     TeleopPSMList mTeleopsPSM;
 
+    typedef std::vector<std::string> TeleopPSMNetList;
+    TeleopPSMNetList mTeleopsPSMNet;
+
     /*! List to manage the teleopPSM components for each MTM */
     typedef std::multimap<std::string, TeleopPSM *> TeleopPSMByMTMList;
     typedef TeleopPSMByMTMList::iterator TeleopPSMByMTMIterator;

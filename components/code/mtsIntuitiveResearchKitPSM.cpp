@@ -182,7 +182,7 @@ void mtsIntuitiveResearchKitPSM::Init(void)
     // Event Tool engage: digital input button event from PSM
     interfaceRequired = AddInterfaceRequired("Tool");
     if (interfaceRequired) {
-        Tool.IsPresent = false;
+        Tool.IsPresent = true;
         interfaceRequired->AddFunction("GetButton", Tool.GetButton);
         interfaceRequired->AddEventHandlerWrite(&mtsIntuitiveResearchKitPSM::EventHandlerTool, this, "Button");
     }
@@ -534,7 +534,7 @@ void mtsIntuitiveResearchKitPSM::SetGoalHomingArm(void)
     }
 
     // check if tool is present and if user wants to go to zero position
-    Tool.GetButton(Tool.IsPresent);
+    //Tool.GetButton(Tool.IsPresent);
     if (mHomingGoesToZero
         && !Tool.IsPresent) {
         // move to zero position only there is no tool present
@@ -665,7 +665,7 @@ void mtsIntuitiveResearchKitPSM::EnterEngagingAdapter(void)
 
     // after coupling is loaded, is it safe to engage?  If a tool is
     // present, the adapter is already engaged
-    Tool.GetButton(Tool.IsPresent);
+    //Tool.GetButton(Tool.IsPresent);
     if (Tool.IsPresent) {
         // we can skip engage later
         mToolNeedEngage = false;
@@ -761,8 +761,7 @@ void mtsIntuitiveResearchKitPSM::RunEngagingAdapter(void)
                 RobotInterface->SendStatus(message.str());
                 EngagingStage++;
             }
-        }
-        break;
+        }        break;
 
     default:
         RobotInterface->SendError(this->GetName() + ": error while evaluating trajectory");
@@ -775,7 +774,7 @@ void mtsIntuitiveResearchKitPSM::TransitionAdapterEngaged(void)
 {
     mAdapterNeedEngage = false;
     if (mArmState.DesiredStateIsNotCurrent()) {
-        Tool.GetButton(Tool.IsPresent);
+        //Tool.GetButton(Tool.IsPresent);
         if (Tool.IsPresent || mIsSimulated) {
             mArmState.SetCurrentState("CHANGING_COUPLING_TOOL");
         }

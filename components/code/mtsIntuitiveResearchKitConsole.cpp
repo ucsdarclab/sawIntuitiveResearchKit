@@ -45,6 +45,7 @@ http://www.cisst.org/cisst/license.txt.
 #include <sawIntuitiveResearchKit/mtsDaVinciEndoscopeFocus.h>
 #include <sawIntuitiveResearchKit/mtsTeleOperationPSM.h>
 #include <sawIntuitiveResearchKit/mtsTeleOperationECM.h>
+#include <sawIntuitiveResearchKit/mtsTeleOperationPSMNetInterface.h>
 #include <sawIntuitiveResearchKit/mtsIntuitiveResearchKitConsole.h>
 
 #include <json/json.h>
@@ -1645,27 +1646,65 @@ bool mtsIntuitiveResearchKitConsole::ConfigurePSMTeleopJSON(const Json::Value & 
         mtmComponent = armPointer->ComponentName();
         mtmInterface = armPointer->InterfaceName();
     }
-    armIterator = mArms.find(psmName);
-    if (armIterator == mArms.end()) {
-        CMN_LOG_CLASS_INIT_ERROR << "ConfigurePSMTeleopJSON: psm \""
-                                 << psmName << "\" is not defined in \"arms\"" << std::endl;
-        return false;
-    } else {
-        armPointer = armIterator->second;
-        if (!((armPointer->mType == Arm::ARM_PSM_GENERIC) ||
-              (armPointer->mType == Arm::ARM_PSM_DERIVED) ||
-              (armPointer->mType == Arm::ARM_PSM_SOCKET)  ||
-              (armPointer->mType == Arm::ARM_PSM))) {
+
+    // read period if present
+    Json::Value jsonValue;
+    double period = mtsIntuitiveResearchKit::TeleopPeriod;
+    jsonValue = jsonTeleop["period"];
+    if (!jsonValue.empty()) {
+        period = jsonValue.asFloat();
+    }
+
+    // If the PSM is going to be communicated over network
+    jsonValue = jsonTeleop["network"];
+    int useNetwork = 0;
+    if(!jsonValue.empty()) {
+        useNetwork = jsonValue.asInt();
+    }
+
+    if(useNetwork == 1){
+        TeleopPSMNetList::iterator teleopPSMNetIterator = std::find(mTeleopsPSMNet.begin(), mTeleopsPSMNet.end(), psmName);
+        if(teleopPSMNetIterator != mTeleopsPSMNet.end()){
             CMN_LOG_CLASS_INIT_ERROR << "ConfigurePSMTeleopJSON: psm \""
-                                     << psmName << "\" type must be \"PSM\", \"PSM_DERIVED\" or \"PSM_GENERIC\"" << std::endl;
+                                     << psmName << "\" is previously defined as network" << std::endl;
             return false;
         }
-        psmComponent = armPointer->ComponentName();
-        psmInterface = armPointer->InterfaceName();
+        else{
+            mtsManagerLocal * componentManager = mtsManagerLocal::GetInstance();
+            mtsTeleOperationPSMNetInterface *psmNetInterface = new mtsTeleOperationPSMNetInterface(psmName, period);
+            psmNetInterface->Configure();
+            componentManager->AddComponent(psmNetInterface);
+
+            psmComponent = psmName;
+            psmInterface = "TeleOp";
+
+            mTeleopsPSMNet.push_back(psmComponent);
+        }
+    }
+    else{
+        armIterator = mArms.find(psmName);
+        if (armIterator == mArms.end()) {
+            CMN_LOG_CLASS_INIT_ERROR << "ConfigurePSMTeleopJSON: psm \""
+                                     << psmName << "\" is not defined in \"arms\"" << std::endl;
+            return false;
+        } else {
+            armPointer = armIterator->second;
+            if (!((armPointer->mType == Arm::ARM_PSM_GENERIC) ||
+                  (armPointer->mType == Arm::ARM_PSM_DERIVED) ||
+                  (armPointer->mType == Arm::ARM_PSM_SOCKET)  ||
+                  (armPointer->mType == Arm::ARM_PSM))) {
+                CMN_LOG_CLASS_INIT_ERROR << "ConfigurePSMTeleopJSON: psm \""
+                                         << psmName << "\" type must be \"PSM\", \"PSM_DERIVED\" or \"PSM_GENERIC\"" << std::endl;
+                return false;
+            }
+            psmComponent = armPointer->ComponentName();
+            psmInterface = armPointer->InterfaceName();
+        }
     }
 
     // check if pair already exist and then add
     const std::string name = mtmName + "-" + psmName;
+
     const TeleopPSMList::iterator teleopIterator = mTeleopsPSM.find(name);
     TeleopPSM * teleopPointer = 0;
     if (teleopIterator == mTeleopsPSM.end()) {
@@ -1714,7 +1753,6 @@ bool mtsIntuitiveResearchKitConsole::ConfigurePSMTeleopJSON(const Json::Value & 
         return false;
     }
 
-    Json::Value jsonValue;
     jsonValue = jsonTeleop["type"];
     if (!jsonValue.empty()) {
         std::string typeString = jsonValue.asString();
@@ -1734,12 +1772,6 @@ bool mtsIntuitiveResearchKitConsole::ConfigurePSMTeleopJSON(const Json::Value & 
         teleopPointer->mType = TeleopPSM::TELEOP_PSM;
     }
 
-    // read period if present
-    double period = mtsIntuitiveResearchKit::TeleopPeriod;
-    jsonValue = jsonTeleop["period"];
-    if (!jsonValue.empty()) {
-        period = jsonValue.asFloat();
-    }
     // for backward compatibility, send warning
     jsonValue = jsonTeleop["rotation"];
     if (!jsonValue.empty()) {
@@ -2354,12 +2386,12 @@ void mtsIntuitiveResearchKitConsole::OperatorPresentEventHandler(const prmEventB
 {
     switch (button.Type()) {
     case prmEventButton::PRESSED:
-        mOperatorPresent = true;
+        mOperatorPresent = !mOperatorPresent;
         mInterface->SendStatus(this->GetName() + ": operator present");
         mAudio.Beep(vct3(0.3, 1500.0, mAudioVolume));
         break;
     case prmEventButton::RELEASED:
-        mOperatorPresent = false;
+        //mOperatorPresent = false;
         mInterface->SendStatus(this->GetName() + ": operator not present");
         mAudio.Beep(vct3(0.3, 1200.0, mAudioVolume));
         break;

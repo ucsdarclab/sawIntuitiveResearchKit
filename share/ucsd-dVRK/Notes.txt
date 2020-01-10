@@ -1,0 +1,8 @@
+1) Foot pedals are connected to MTML NOT MTMR
+2) The .cal files were taken from original code base
+3) The .xml files (in xmlfiles folder) corresponding to the .cal files were taken from original code base. They should be re-generated and re-calibrated.
+4) The rest of the files
+	-console-MTMR-PSM1-MTML-PSM2-Telop.json : File that is used for dvrk_robot_console_json to link the tele-op with the arms
+	-mtm.json are the kinematics for the master arms
+	-psm-large-needle-driver-PSM1.json are the kinematics if you use the needle driver
+	-sawControllersPID-XXXX.xml are the xml files for the PID controllers (I guess)

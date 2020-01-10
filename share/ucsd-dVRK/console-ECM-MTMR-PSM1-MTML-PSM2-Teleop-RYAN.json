@@ -1,0 +1,81 @@
+/* -*- Mode: Javascript; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+{
+    "io": {
+        "footpedals": "xmlfiles/sawRobotIO1394-MTML-foot-pedals.xml"
+    }
+    ,
+    "arms":
+    [
+        {
+            "name": "PSM1",
+            "type": "PSM",
+            "io": "xmlfiles/sawRobotIO1394-PSM1-61707.xml",
+            "pid": "sawControllersPID-PSM.xml",
+            "kinematic": "psm-permanent-cautery-spatula.json",
+            "base-frame": {
+                "reference-frame": "ECM",
+                "transform": [[ -1.0,  0.0,  0.0, -0.0],
+                              [  0.0, -1.0,  0.0,  0.0 ],
+                              [  0.0,  0.0,  1.0,  0.0 ],
+                              [  0.0,  0.0,  0.0,  1.0 ]]
+            }
+        }
+        ,
+        {
+            "name": "PSM2",
+            "type": "PSM",
+            "io": "xmlfiles/sawRobotIO1394-PSM2-27925.xml",
+            "pid": "sawControllersPID-PSM.xml",
+            "kinematic": "psm-large-needle-driver.json",
+            "base-frame": {
+                "reference-frame": "ECM",
+                "transform": [[ -1.0,  0.0,  0.0, -0.0],
+                              [  0.0, -1.0,  0.0,  0.0 ],
+                              [  0.0,  0.0,  1.0,  0.0 ],
+                              [  0.0,  0.0,  0.0,  1.0 ]]
+            }
+        }
+        ,
+        {
+            "name": "ECM",
+            "type": "ECM",
+            "io": "xmlfiles/sawRobotIO1394-ECM-19250.xml",
+            "pid": "sawControllersPID-ECM.xml",
+            "kinematic": "ecm-straight.json"
+        }
+        ,
+        {
+            "name": "MTMR",
+            "type": "MTM",
+            "io": "xmlfiles/sawRobotIO1394-MTMR-18545.xml",
+            "pid": "sawControllersPID-MTMR.xml",
+            "kinematic": "MTMR-18545.json"
+        }
+        ,
+        {
+            "name": "MTML",
+            "type": "MTM",
+            "io": "xmlfiles/sawRobotIO1394-MTML-36887.xml",
+            "pid": "sawControllersPID-MTML.xml",
+            "kinematic": "MTML-36887.json"
+        }
+    ]
+    ,
+    "psm-teleops":
+    [
+        {
+            "mtm": "MTMR",
+            "psm": "NetPSM1",
+            "network": 1,
+            "configure-parameter": {
+                "ignore-jaw": true
+            }
+        }
+        ,
+        {
+            "mtm": "MTML",
+            "psm": "NetPSM2",
+            "network": 1
+        }
+    ]
+ }
